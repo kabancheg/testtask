@@ -1,0 +1,34 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      context: .
+    command: >
+      sh -c "
+        python manage.py wait_for_db &&
+        python manage.py migrate &&
+        python manage.py loaddata dump_data.json &&
+        python manage.py runserver 0.0.0.0:8000" 
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app
+      - ./data_app:/vol/web
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  db:
+    image: postgres
+    volumes:
+      - ./data_db:/var/lib/postgresql/data
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    ports:
+      - "5432:5432"
+
